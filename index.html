@@ -385,8 +385,7 @@
         const BIRDEYE_API_KEY = '6031f04f45084d5a80843e140a4cb2b7';
         
         // Add your Solana token contract address here
-        // Testing with Wrapped SOL - replace with your token address when ready
-        const CONTRACT_ADDRESS = 'So11111111111111111111111111111111111111112';
+        const CONTRACT_ADDRESS = 'FwtPq9hHRwWVAU6WbXmQXKDJZaWXg8eWgvjkwbfabszY';
         
         // Set to false to use live data from Birdeye API
         const USE_DEMO_DATA = false;
@@ -546,8 +545,7 @@
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
-                showError(`Error loading live data: ${error.message}. Using demo data instead.`);
-                generateDemoData();
+                showError(`Error loading live data: ${error.message}`);
             }
         }
 
