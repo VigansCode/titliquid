@@ -198,6 +198,7 @@
             padding: 0.3rem 0.8rem;
             border-radius: 6px;
             display: inline-block;
+            width: fit-content;
         }
 
         .price-change.positive {
@@ -248,13 +249,6 @@
 
         canvas {
             max-width: 100%;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 4rem;
-            font-size: 1.2rem;
-            color: #a0a0a0;
         }
 
         .stats-grid {
@@ -313,7 +307,6 @@
     </style>
 </head>
 <body>
-    <!-- Landing Page -->
     <div id="landingPage" class="landing-page">
         <div class="logo">💰 TitLiquid</div>
         <h1 class="hero-title">The blockchain to house all<br>tit related finance</h1>
@@ -324,7 +317,6 @@
         </div>
     </div>
 
-    <!-- Trading View -->
     <div id="tradingView" class="trading-view">
         <nav class="navbar">
             <div class="nav-logo">💰 TitLiquid</div>
@@ -340,12 +332,12 @@
                 </div>
 
                 <div class="timeframe-selector">
-                    <button class="timeframe-btn" onclick="changeTimeframe('1m')">1m</button>
-                    <button class="timeframe-btn" onclick="changeTimeframe('5m')">5m</button>
-                    <button class="timeframe-btn" onclick="changeTimeframe('15m')">15m</button>
-                    <button class="timeframe-btn active" onclick="changeTimeframe('1H')">1H</button>
-                    <button class="timeframe-btn" onclick="changeTimeframe('4H')">4H</button>
-                    <button class="timeframe-btn" onclick="changeTimeframe('1D')">1D</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe(this, '1m')">1m</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe(this, '5m')">5m</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe(this, '15m')">15m</button>
+                    <button class="timeframe-btn active" onclick="changeTimeframe(this, '1H')">1H</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe(this, '4H')">4H</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe(this, '1D')">1D</button>
                 </div>
             </div>
 
@@ -377,22 +369,8 @@
     </div>
 
     <script>
-        // ================================
-        // CONFIGURATION - EDIT THESE VALUES
-        // ================================
-        
-        // Add your Birdeye API key here
         const BIRDEYE_API_KEY = '6031f04f45084d5a80843e140a4cb2b7';
-        
-        // Add your Solana token contract address here
         const CONTRACT_ADDRESS = 'FwtPq9hHRwWVAU6WbXmQXKDJZaWXg8eWgvjkwbfabszY';
-        
-        // Set to false to use live data from Birdeye API
-        const USE_DEMO_DATA = false;
-        
-        // ================================
-        // APPLICATION CODE
-        // ================================
         
         let chart = null;
         let currentTimeframe = '1H';
@@ -409,13 +387,12 @@
         }
 
         function showError(message) {
-            const errorContainer = document.getElementById('errorContainer');
-            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            document.getElementById('errorContainer').innerHTML = 
+                `<div class="error-message">${message}</div>`;
         }
 
         function clearError() {
-            const errorContainer = document.getElementById('errorContainer');
-            errorContainer.innerHTML = '';
+            document.getElementById('errorContainer').innerHTML = '';
         }
 
         function initChart() {
@@ -430,14 +407,14 @@
                         data: [],
                         borderColor: '#ff69b4',
                         backgroundColor: 'rgba(255, 105, 180, 0.1)',
-                        borderWidth: 2,
+                        borderWidth: 3,
                         fill: true,
-                        tension: 0.4,
+                        tension: 0.1,
                         pointRadius: 0,
-                        pointHoverRadius: 6,
+                        pointHoverRadius: 8,
                         pointHoverBackgroundColor: '#ff69b4',
                         pointHoverBorderColor: '#ffffff',
-                        pointHoverBorderWidth: 2
+                        pointHoverBorderWidth: 3
                     }]
                 },
                 options: {
@@ -452,11 +429,19 @@
                             intersect: false,
                             backgroundColor: 'rgba(20, 20, 20, 0.95)',
                             titleColor: '#ffffff',
-                            bodyColor: '#a0a0a0',
-                            borderColor: 'rgba(255, 105, 180, 0.5)',
-                            borderWidth: 1,
-                            padding: 12,
+                            bodyColor: '#ffffff',
+                            borderColor: '#ff69b4',
+                            borderWidth: 2,
+                            padding: 15,
                             displayColors: false,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 16,
+                                weight: 'bold'
+                            },
                             callbacks: {
                                 label: function(context) {
                                     return '$' + context.parsed.y.toFixed(8);
@@ -472,16 +457,22 @@
                             },
                             ticks: {
                                 color: '#a0a0a0',
-                                maxTicksLimit: 12
+                                maxTicksLimit: 10,
+                                font: {
+                                    size: 11
+                                }
                             }
                         },
                         y: {
                             grid: {
-                                color: 'rgba(255, 255, 255, 0.05)',
+                                color: 'rgba(255, 255, 255, 0.08)',
                                 drawBorder: false
                             },
                             ticks: {
                                 color: '#a0a0a0',
+                                font: {
+                                    size: 11
+                                },
                                 callback: function(value) {
                                     return '$' + value.toFixed(8);
                                 }
@@ -489,8 +480,7 @@
                         }
                     },
                     interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
+                        mode: 'index',
                         intersect: false
                     }
                 }
@@ -500,15 +490,7 @@
         async function fetchChartData() {
             clearError();
 
-            // Check if configuration is complete
-            if (USE_DEMO_DATA || CONTRACT_ADDRESS === 'YOUR_TOKEN_CONTRACT_ADDRESS_HERE' || BIRDEYE_API_KEY === 'YOUR_BIRDEYE_API_KEY_HERE') {
-                console.log('Using demo data. Add your API key and contract address at the top of the script to use live data.');
-                generateDemoData();
-                return;
-            }
-
             try {
-                // Birdeye API timeframe mapping
                 const timeframeMap = {
                     '1m': '1m',
                     '5m': '5m',
@@ -520,7 +502,7 @@
 
                 const url = `https://public-api.birdeye.so/defi/history_price?address=${CONTRACT_ADDRESS}&address_type=token&type=${timeframeMap[currentTimeframe]}`;
                 
-                console.log('Fetching from Birdeye API:', url);
+                console.log('Fetching:', url);
                 
                 const response = await fetch(url, {
                     method: 'GET',
@@ -531,21 +513,21 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
+                    throw new Error(`API returned status ${response.status}`);
                 }
 
                 const data = await response.json();
-                console.log('API Response:', data);
+                console.log('Response:', data);
                 
                 if (data.success && data.data && data.data.items && data.data.items.length > 0) {
                     updateChart(data.data.items);
                     fetchTokenInfo();
                 } else {
-                    throw new Error('No price data available for this token');
+                    showError('No price history available for this token on Birdeye');
                 }
             } catch (error) {
-                console.error('Error fetching data:', error);
-                showError(`Error loading live data: ${error.message}`);
+                console.error('Error:', error);
+                showError(`Failed to load data: ${error.message}`);
             }
         }
 
@@ -563,16 +545,18 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Token Info:', data);
+                    console.log('Token info:', data);
                     
                     if (data.success && data.data) {
                         const token = data.data;
                         
                         if (token.v24hUSD) {
-                            document.getElementById('volume24h').textContent = '$' + formatNumber(token.v24hUSD);
+                            document.getElementById('volume24h').textContent = 
+                                '$' + formatNumber(token.v24hUSD);
                         }
                         if (token.mc) {
-                            document.getElementById('marketCap').textContent = '$' + formatNumber(token.mc);
+                            document.getElementById('marketCap').textContent = 
+                                '$' + formatNumber(token.mc);
                         }
                     }
                 }
@@ -592,63 +576,6 @@
             return num.toFixed(2);
         }
 
-        function generateDemoData() {
-            const points = 100;
-            const basePrice = 0.00003054;
-            const labels = [];
-            const prices = [];
-            
-            let currentPrice = basePrice;
-            const now = Date.now();
-            
-            // Generate time-appropriate intervals based on timeframe
-            const intervalMinutes = {
-                '1m': 1,
-                '5m': 5,
-                '15m': 15,
-                '1H': 60,
-                '4H': 240,
-                '1D': 1440
-            };
-            
-            const interval = intervalMinutes[currentTimeframe] || 60;
-            
-            for (let i = points; i >= 0; i--) {
-                const time = new Date(now - i * interval * 60000);
-                
-                if (interval >= 1440) {
-                    labels.push(time.toLocaleDateString([], { month: 'short', day: 'numeric' }));
-                } else if (interval >= 60) {
-                    labels.push(time.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit' }));
-                } else {
-                    labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-                }
-                
-                const change = (Math.random() - 0.48) * basePrice * 0.02;
-                currentPrice = Math.max(currentPrice + change, basePrice * 0.7);
-                prices.push(currentPrice);
-            }
-
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = prices;
-            chart.update('none');
-
-            const latestPrice = prices[prices.length - 1];
-            const oldPrice = prices[0];
-            const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
-            
-            document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
-            
-            const priceChangeEl = document.getElementById('priceChange');
-            priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
-            priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
-
-            document.getElementById('volume24h').textContent = '$' + formatNumber(Math.random() * 500000 + 100000);
-            document.getElementById('marketCap').textContent = '$' + formatNumber(Math.random() * 5000000 + 1000000);
-            document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
-            document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
-        }
-
         function updateChart(priceData) {
             const labels = [];
             const prices = [];
@@ -656,7 +583,9 @@
             priceData.forEach(item => {
                 const date = new Date(item.unixTime * 1000);
                 
-                if (currentTimeframe === '1D' || currentTimeframe === '4H') {
+                if (currentTimeframe === '1D') {
+                    labels.push(date.toLocaleDateString([], { month: 'short', day: 'numeric' }));
+                } else if (currentTimeframe === '4H') {
                     labels.push(date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit' }));
                 } else {
                     labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
@@ -685,18 +614,17 @@
             }
         }
 
-        function changeTimeframe(timeframe) {
+        function changeTimeframe(button, timeframe) {
             currentTimeframe = timeframe;
             
             document.querySelectorAll('.timeframe-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            button.classList.add('active');
             
             fetchChartData();
         }
 
-        // Auto-refresh data every 30 seconds
         setInterval(() => {
             if (document.getElementById('tradingView').classList.contains('active')) {
                 fetchChartData();
