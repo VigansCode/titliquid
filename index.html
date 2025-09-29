@@ -283,6 +283,15 @@
             font-weight: 700;
         }
 
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 2.5rem;
@@ -326,8 +335,8 @@
             <div class="chart-header">
                 <div class="price-info">
                     <div class="token-name">TIT/SOL</div>
-                    <div class="current-price" id="currentPrice">$0.00000</div>
-                    <span class="price-change positive" id="priceChange">+0.00%</span>
+                    <div class="current-price" id="currentPrice">Loading...</div>
+                    <span class="price-change" id="priceChange">--</span>
                 </div>
 
                 <div class="timeframe-selector">
@@ -340,6 +349,8 @@
                 </div>
             </div>
 
+            <div id="errorContainer"></div>
+
             <div class="chart-wrapper">
                 <canvas id="priceChart"></canvas>
             </div>
@@ -347,34 +358,41 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-label">24h Volume</div>
-                    <div class="stat-value" id="volume24h">$0</div>
+                    <div class="stat-value" id="volume24h">--</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Market Cap</div>
-                    <div class="stat-value" id="marketCap">$0</div>
+                    <div class="stat-value" id="marketCap">--</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">24h High</div>
-                    <div class="stat-value" id="high24h">$0</div>
+                    <div class="stat-value" id="high24h">--</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">24h Low</div>
-                    <div class="stat-value" id="low24h">$0</div>
+                    <div class="stat-value" id="low24h">--</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // STEP 1: Add your Birdeye API key here (you have this!)
-        const BIRDEYE_API_KEY = 'YOUR_API_KEY_HERE';
+        // ================================
+        // CONFIGURATION - EDIT THESE VALUES
+        // ================================
         
-        // STEP 2: After deploying on pump.fun, add your token contract address here
-        // It will look something like: 'ABC123def456...' (a long string of letters and numbers)
-        const CONTRACT_ADDRESS = 'YOUR_PUMP_FUN_TOKEN_ADDRESS';
+        // Add your Birdeye API key here
+        const BIRDEYE_API_KEY = 'YOUR_BIRDEYE_API_KEY_HERE';
         
-        // STEP 3: Set to false once you add your API key and token address above
+        // Add your Solana token contract address here
+        const CONTRACT_ADDRESS = 'YOUR_TOKEN_CONTRACT_ADDRESS_HERE';
+        
+        // Set to false once you've added your real API key and contract address
         const USE_DEMO_DATA = true;
+        
+        // ================================
+        // APPLICATION CODE
+        // ================================
         
         let chart = null;
         let currentTimeframe = '1H';
@@ -388,6 +406,16 @@
 
         function scrollToFeatures() {
             alert('Features section coming soon!');
+        }
+
+        function showError(message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        function clearError() {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.innerHTML = '';
         }
 
         function initChart() {
@@ -470,15 +498,17 @@
         }
 
         async function fetchChartData() {
-            // If using demo data or missing credentials, skip API call
-            if (USE_DEMO_DATA || CONTRACT_ADDRESS === 'YOUR_SOLANA_TOKEN_ADDRESS_HERE' || BIRDEYE_API_KEY === 'YOUR_BIRDEYE_API_KEY') {
-                console.log('Using demo data. Add your API key and token address to use live data.');
+            clearError();
+
+            // Check if configuration is complete
+            if (USE_DEMO_DATA || CONTRACT_ADDRESS === 'YOUR_TOKEN_CONTRACT_ADDRESS_HERE' || BIRDEYE_API_KEY === 'YOUR_BIRDEYE_API_KEY_HERE') {
+                console.log('Using demo data. Add your API key and contract address at the top of the script to use live data.');
                 generateDemoData();
                 return;
             }
 
             try {
-                // Birdeye API endpoint for price history
+                // Birdeye API timeframe mapping
                 const timeframeMap = {
                     '1m': '1m',
                     '5m': '5m',
@@ -496,33 +526,26 @@
                     method: 'GET',
                     headers: {
                         'X-API-KEY': BIRDEYE_API_KEY,
-                        'x-chain': 'solana',
-                        'Accept': 'application/json'
+                        'x-chain': 'solana'
                     }
                 });
 
-                console.log('Response status:', response.status);
-
                 if (!response.ok) {
-                    console.error('API request failed:', response.status, response.statusText);
-                    generateDemoData();
-                    return;
+                    throw new Error(`API request failed with status ${response.status}`);
                 }
 
                 const data = await response.json();
                 console.log('API Response:', data);
                 
-                if (data.success && data.data && data.data.items) {
+                if (data.success && data.data && data.data.items && data.data.items.length > 0) {
                     updateChart(data.data.items);
-                    
-                    // Also fetch current token info for stats
                     fetchTokenInfo();
                 } else {
-                    console.warn('Invalid data structure:', data);
-                    generateDemoData();
+                    throw new Error('No price data available for this token');
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
+                showError(`Error loading live data: ${error.message}. Using demo data instead.`);
                 generateDemoData();
             }
         }
@@ -535,8 +558,7 @@
                     method: 'GET',
                     headers: {
                         'X-API-KEY': BIRDEYE_API_KEY,
-                        'x-chain': 'solana',
-                        'Accept': 'application/json'
+                        'x-chain': 'solana'
                     }
                 });
 
@@ -547,204 +569,11 @@
                     if (data.success && data.data) {
                         const token = data.data;
                         
-                        // Update stats with real data
                         if (token.v24hUSD) {
-                            document.getElementById('volume24h').textContent = '
-
-        function generateDemoData() {
-            // Generate realistic-looking demo data
-            const points = 100;
-            const basePrice = 0.00003054;
-            const labels = [];
-            const prices = [];
-            
-            let currentPrice = basePrice;
-            const now = Date.now();
-            
-            for (let i = points; i >= 0; i--) {
-                const time = new Date(now - i * 60000 * (currentTimeframe === '1m' ? 1 : currentTimeframe === '5m' ? 5 : 60));
-                labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-                
-                // Add some realistic price movement
-                const change = (Math.random() - 0.48) * basePrice * 0.02;
-                currentPrice = Math.max(currentPrice + change, basePrice * 0.8);
-                prices.push(currentPrice);
-            }
-
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = prices;
-            chart.update('none');
-
-            // Update price display
-            const latestPrice = prices[prices.length - 1];
-            const oldPrice = prices[0];
-            const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
-            
-            document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
-            
-            const priceChangeEl = document.getElementById('priceChange');
-            priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
-            priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
-
-            // Update stats
-            document.getElementById('volume24h').textContent = '$' + (Math.random() * 500000 + 100000).toFixed(0);
-            document.getElementById('marketCap').textContent = '$' + (Math.random() * 5000000 + 1000000).toFixed(0);
-            document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
-            document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
-        }
-
-        function updateChart(priceData) {
-            const labels = [];
-            const prices = [];
-
-            priceData.forEach(item => {
-                const date = new Date(item.unixTime * 1000);
-                labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-                prices.push(item.value);
-            });
-
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = prices;
-            chart.update('none');
-
-            // Update current price and change
-            if (prices.length > 0) {
-                const latestPrice = prices[prices.length - 1];
-                const oldPrice = prices[0];
-                const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
-                
-                document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
-                
-                const priceChangeEl = document.getElementById('priceChange');
-                priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
-                priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
-
-                // Update stats
-                document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
-                document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
-            }
-        }
-
-        function changeTimeframe(timeframe) {
-            currentTimeframe = timeframe;
-            
-            // Update active button
-            document.querySelectorAll('.timeframe-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            fetchChartData();
-        }
-
-        // Auto-refresh data every 30 seconds
-        setInterval(() => {
-            if (document.getElementById('tradingView').classList.contains('active')) {
-                fetchChartData();
-            }
-        }, 30000);
-    </script>
-</body>
-</html> + formatNumber(token.v24hUSD);
+                            document.getElementById('volume24h').textContent = '$' + formatNumber(token.v24hUSD);
                         }
                         if (token.mc) {
-                            document.getElementById('marketCap').textContent = '
-
-        function generateDemoData() {
-            // Generate realistic-looking demo data
-            const points = 100;
-            const basePrice = 0.00003054;
-            const labels = [];
-            const prices = [];
-            
-            let currentPrice = basePrice;
-            const now = Date.now();
-            
-            for (let i = points; i >= 0; i--) {
-                const time = new Date(now - i * 60000 * (currentTimeframe === '1m' ? 1 : currentTimeframe === '5m' ? 5 : 60));
-                labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-                
-                // Add some realistic price movement
-                const change = (Math.random() - 0.48) * basePrice * 0.02;
-                currentPrice = Math.max(currentPrice + change, basePrice * 0.8);
-                prices.push(currentPrice);
-            }
-
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = prices;
-            chart.update('none');
-
-            // Update price display
-            const latestPrice = prices[prices.length - 1];
-            const oldPrice = prices[0];
-            const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
-            
-            document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
-            
-            const priceChangeEl = document.getElementById('priceChange');
-            priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
-            priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
-
-            // Update stats
-            document.getElementById('volume24h').textContent = '$' + (Math.random() * 500000 + 100000).toFixed(0);
-            document.getElementById('marketCap').textContent = '$' + (Math.random() * 5000000 + 1000000).toFixed(0);
-            document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
-            document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
-        }
-
-        function updateChart(priceData) {
-            const labels = [];
-            const prices = [];
-
-            priceData.forEach(item => {
-                const date = new Date(item.unixTime * 1000);
-                labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-                prices.push(item.value);
-            });
-
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = prices;
-            chart.update('none');
-
-            // Update current price and change
-            if (prices.length > 0) {
-                const latestPrice = prices[prices.length - 1];
-                const oldPrice = prices[0];
-                const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
-                
-                document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
-                
-                const priceChangeEl = document.getElementById('priceChange');
-                priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
-                priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
-
-                // Update stats
-                document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
-                document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
-            }
-        }
-
-        function changeTimeframe(timeframe) {
-            currentTimeframe = timeframe;
-            
-            // Update active button
-            document.querySelectorAll('.timeframe-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            fetchChartData();
-        }
-
-        // Auto-refresh data every 30 seconds
-        setInterval(() => {
-            if (document.getElementById('tradingView').classList.contains('active')) {
-                fetchChartData();
-            }
-        }, 30000);
-    </script>
-</body>
-</html> + formatNumber(token.mc);
+                            document.getElementById('marketCap').textContent = '$' + formatNumber(token.mc);
                         }
                     }
                 }
@@ -754,7 +583,9 @@
         }
 
         function formatNumber(num) {
-            if (num >= 1000000) {
+            if (num >= 1000000000) {
+                return (num / 1000000000).toFixed(2) + 'B';
+            } else if (num >= 1000000) {
                 return (num / 1000000).toFixed(2) + 'M';
             } else if (num >= 1000) {
                 return (num / 1000).toFixed(2) + 'K';
@@ -763,7 +594,6 @@
         }
 
         function generateDemoData() {
-            // Generate realistic-looking demo data
             const points = 100;
             const basePrice = 0.00003054;
             const labels = [];
@@ -772,13 +602,31 @@
             let currentPrice = basePrice;
             const now = Date.now();
             
+            // Generate time-appropriate intervals based on timeframe
+            const intervalMinutes = {
+                '1m': 1,
+                '5m': 5,
+                '15m': 15,
+                '1H': 60,
+                '4H': 240,
+                '1D': 1440
+            };
+            
+            const interval = intervalMinutes[currentTimeframe] || 60;
+            
             for (let i = points; i >= 0; i--) {
-                const time = new Date(now - i * 60000 * (currentTimeframe === '1m' ? 1 : currentTimeframe === '5m' ? 5 : 60));
-                labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                const time = new Date(now - i * interval * 60000);
                 
-                // Add some realistic price movement
+                if (interval >= 1440) {
+                    labels.push(time.toLocaleDateString([], { month: 'short', day: 'numeric' }));
+                } else if (interval >= 60) {
+                    labels.push(time.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit' }));
+                } else {
+                    labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                }
+                
                 const change = (Math.random() - 0.48) * basePrice * 0.02;
-                currentPrice = Math.max(currentPrice + change, basePrice * 0.8);
+                currentPrice = Math.max(currentPrice + change, basePrice * 0.7);
                 prices.push(currentPrice);
             }
 
@@ -786,7 +634,6 @@
             chart.data.datasets[0].data = prices;
             chart.update('none');
 
-            // Update price display
             const latestPrice = prices[prices.length - 1];
             const oldPrice = prices[0];
             const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
@@ -797,9 +644,8 @@
             priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
             priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
 
-            // Update stats
-            document.getElementById('volume24h').textContent = '$' + (Math.random() * 500000 + 100000).toFixed(0);
-            document.getElementById('marketCap').textContent = '$' + (Math.random() * 5000000 + 1000000).toFixed(0);
+            document.getElementById('volume24h').textContent = '$' + formatNumber(Math.random() * 500000 + 100000);
+            document.getElementById('marketCap').textContent = '$' + formatNumber(Math.random() * 5000000 + 1000000);
             document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
             document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
         }
@@ -810,7 +656,13 @@
 
             priceData.forEach(item => {
                 const date = new Date(item.unixTime * 1000);
-                labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                
+                if (currentTimeframe === '1D' || currentTimeframe === '4H') {
+                    labels.push(date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit' }));
+                } else {
+                    labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                }
+                
                 prices.push(item.value);
             });
 
@@ -818,7 +670,6 @@
             chart.data.datasets[0].data = prices;
             chart.update('none');
 
-            // Update current price and change
             if (prices.length > 0) {
                 const latestPrice = prices[prices.length - 1];
                 const oldPrice = prices[0];
@@ -830,7 +681,6 @@
                 priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
                 priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
 
-                // Update stats
                 document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
                 document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
             }
@@ -839,7 +689,6 @@
         function changeTimeframe(timeframe) {
             currentTimeframe = timeframe;
             
-            // Update active button
             document.querySelectorAll('.timeframe-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
