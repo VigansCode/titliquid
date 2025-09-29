@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tit Liquid - Trading Platform</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         * {
             margin: 0;
@@ -242,13 +242,15 @@
         .chart-wrapper {
             background: rgba(20, 20, 20, 0.8);
             border-radius: 16px;
-            padding: 2rem;
+            padding: 0;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            height: 500px;
+            height: 600px;
+            overflow: hidden;
         }
 
-        canvas {
-            max-width: 100%;
+        #chartContainer {
+            width: 100%;
+            height: 100%;
         }
 
         .stats-grid {
@@ -344,7 +346,7 @@
             <div id="errorContainer"></div>
 
             <div class="chart-wrapper">
-                <canvas id="priceChart"></canvas>
+                <div id="chartContainer"></div>
             </div>
 
             <div class="stats-grid">
@@ -373,6 +375,8 @@
         const CONTRACT_ADDRESS = 'FwtPq9hHRwWVAU6WbXmQXKDJZaWXg8eWgvjkwbfabszY';
         
         let chart = null;
+        let candlestickSeries = null;
+        let volumeSeries = null;
         let currentTimeframe = '1H';
 
         function startTrading() {
@@ -396,94 +400,56 @@
         }
 
         function initChart() {
-            const ctx = document.getElementById('priceChart').getContext('2d');
+            const container = document.getElementById('chartContainer');
             
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Price',
-                        data: [],
-                        borderColor: '#ff69b4',
-                        backgroundColor: 'rgba(255, 105, 180, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.1,
-                        pointRadius: 0,
-                        pointHoverRadius: 8,
-                        pointHoverBackgroundColor: '#ff69b4',
-                        pointHoverBorderColor: '#ffffff',
-                        pointHoverBorderWidth: 3
-                    }]
+            chart = LightweightCharts.createChart(container, {
+                layout: {
+                    background: { color: '#141414' },
+                    textColor: '#a0a0a0',
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(20, 20, 20, 0.95)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#ffffff',
-                            borderColor: '#ff69b4',
-                            borderWidth: 2,
-                            padding: 15,
-                            displayColors: false,
-                            titleFont: {
-                                size: 14,
-                                weight: 'bold'
-                            },
-                            bodyFont: {
-                                size: 16,
-                                weight: 'bold'
-                            },
-                            callbacks: {
-                                label: function(context) {
-                                    return '$' + context.parsed.y.toFixed(8);
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#a0a0a0',
-                                maxTicksLimit: 10,
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        },
-                        y: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.08)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#a0a0a0',
-                                font: {
-                                    size: 11
-                                },
-                                callback: function(value) {
-                                    return '$' + value.toFixed(8);
-                                }
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    }
-                }
+                grid: {
+                    vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+                    horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
+                },
+                crosshair: {
+                    mode: LightweightCharts.CrosshairMode.Normal,
+                },
+                rightPriceScale: {
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                },
+                timeScale: {
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    timeVisible: true,
+                    secondsVisible: false,
+                },
+                width: container.clientWidth,
+                height: container.clientHeight,
+            });
+
+            candlestickSeries = chart.addCandlestickSeries({
+                upColor: '#22c55e',
+                downColor: '#ef4444',
+                borderUpColor: '#22c55e',
+                borderDownColor: '#ef4444',
+                wickUpColor: '#22c55e',
+                wickDownColor: '#ef4444',
+            });
+
+            volumeSeries = chart.addHistogramSeries({
+                color: '#26a69a',
+                priceFormat: {
+                    type: 'volume',
+                },
+                priceScaleId: '',
+                scaleMargins: {
+                    top: 0.8,
+                    bottom: 0,
+                },
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                chart.resize(container.clientWidth, container.clientHeight);
             });
         }
 
@@ -500,9 +466,9 @@
                     '1D': '1D'
                 };
 
-                const url = `https://public-api.birdeye.so/defi/history_price?address=${CONTRACT_ADDRESS}&address_type=token&type=${timeframeMap[currentTimeframe]}`;
+                const url = `https://public-api.birdeye.so/defi/ohlcv?address=${CONTRACT_ADDRESS}&type=${timeframeMap[currentTimeframe]}&time_from=${Math.floor(Date.now() / 1000) - 86400 * 7}&time_to=${Math.floor(Date.now() / 1000)}`;
                 
-                console.log('Fetching:', url);
+                console.log('Fetching OHLCV:', url);
                 
                 const response = await fetch(url, {
                     method: 'GET',
@@ -523,7 +489,7 @@
                     updateChart(data.data.items);
                     fetchTokenInfo();
                 } else {
-                    showError('No price history available for this token on Birdeye');
+                    showError('No OHLCV data available for this token on Birdeye');
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -552,11 +518,15 @@
                         
                         if (token.v24hUSD) {
                             document.getElementById('volume24h').textContent = 
-                                '$' + formatNumber(token.v24hUSD);
+                                '
+</body>
+</html> + formatNumber(token.v24hUSD);
                         }
                         if (token.mc) {
                             document.getElementById('marketCap').textContent = 
-                                '$' + formatNumber(token.mc);
+                                '
+</body>
+</html> + formatNumber(token.mc);
                         }
                     }
                 }
@@ -576,42 +546,58 @@
             return num.toFixed(2);
         }
 
-        function updateChart(priceData) {
-            const labels = [];
-            const prices = [];
+        function updateChart(ohlcvData) {
+            const candleData = [];
+            const volumeData = [];
+            let latestPrice = 0;
+            let oldestPrice = 0;
+            let highPrice = 0;
+            let lowPrice = Infinity;
 
-            priceData.forEach(item => {
-                const date = new Date(item.unixTime * 1000);
+            ohlcvData.forEach((item, index) => {
+                const time = item.unixTime;
                 
-                if (currentTimeframe === '1D') {
-                    labels.push(date.toLocaleDateString([], { month: 'short', day: 'numeric' }));
-                } else if (currentTimeframe === '4H') {
-                    labels.push(date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit' }));
-                } else {
-                    labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-                }
-                
-                prices.push(item.value);
+                candleData.push({
+                    time: time,
+                    open: item.o,
+                    high: item.h,
+                    low: item.l,
+                    close: item.c
+                });
+
+                volumeData.push({
+                    time: time,
+                    value: item.v,
+                    color: item.c >= item.o ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
+                });
+
+                if (index === 0) oldestPrice = item.o;
+                if (index === ohlcvData.length - 1) latestPrice = item.c;
+                if (item.h > highPrice) highPrice = item.h;
+                if (item.l < lowPrice) lowPrice = item.l;
             });
 
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = prices;
-            chart.update('none');
+            candlestickSeries.setData(candleData);
+            volumeSeries.setData(volumeData);
 
-            if (prices.length > 0) {
-                const latestPrice = prices[prices.length - 1];
-                const oldPrice = prices[0];
-                const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
-                
-                document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
-                
-                const priceChangeEl = document.getElementById('priceChange');
-                priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
-                priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
+            // Update price display
+            document.getElementById('currentPrice').textContent = '
+</body>
+</html> + latestPrice.toFixed(8);
+            
+            const priceChange = ((latestPrice - oldestPrice) / oldestPrice * 100);
+            const priceChangeEl = document.getElementById('priceChange');
+            priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
+            priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
 
-                document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
-                document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
-            }
+            document.getElementById('high24h').textContent = '
+</body>
+</html> + highPrice.toFixed(8);
+            document.getElementById('low24h').textContent = '
+</body>
+</html> + lowPrice.toFixed(8);
+
+            chart.timeScale().fitContent();
         }
 
         function changeTimeframe(button, timeframe) {
