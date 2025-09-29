@@ -464,11 +464,9 @@
                     '1D': '1D'
                 };
 
-                const timeFrom = Math.floor(Date.now() / 1000) - 86400 * 7;
-                const timeTo = Math.floor(Date.now() / 1000);
-                const url = 'https://public-api.birdeye.so/defi/ohlcv?address=' + CONTRACT_ADDRESS + '&type=' + timeframeMap[currentTimeframe] + '&time_from=' + timeFrom + '&time_to=' + timeTo;
+                const url = 'https://public-api.birdeye.so/defi/history_price?address=' + CONTRACT_ADDRESS + '&address_type=token&type=' + timeframeMap[currentTimeframe];
                 
-                console.log('Fetching OHLCV:', url);
+                console.log('Fetching price history:', url);
                 
                 const response = await fetch(url, {
                     method: 'GET',
@@ -486,10 +484,10 @@
                 console.log('Response:', data);
                 
                 if (data.success && data.data && data.data.items && data.data.items.length > 0) {
-                    updateChart(data.data.items);
+                    updateChartFromPriceHistory(data.data.items);
                     fetchTokenInfo();
                 } else {
-                    showError('No OHLCV data available for this token on Birdeye');
+                    showError('No price history available for this token on Birdeye');
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -538,6 +536,292 @@
                 return (num / 1000).toFixed(2) + 'K';
             }
             return num.toFixed(2);
+        }
+
+        function updateChartFromPriceHistory(priceData) {
+            // Convert simple price history to candlestick-like data
+            const candleData = [];
+            const volumeData = [];
+            let latestPrice = 0;
+            let oldestPrice = 0;
+            let highPrice = 0;
+            let lowPrice = Infinity;
+
+            // Group data into candles (every 5 points becomes 1 candle for smoother display)
+            const groupSize = Math.max(1, Math.floor(priceData.length / 100));
+            
+            for (let i = 0; i < priceData.length; i += groupSize) {
+                const group = priceData.slice(i, i + groupSize);
+                if (group.length === 0) continue;
+                
+                const prices = group.map(function(item) { return item.value; });
+                const open = prices[0];
+                const close = prices[prices.length - 1];
+                const high = Math.max.apply(null, prices);
+                const low = Math.min.apply(null, prices);
+                const time = group[group.length - 1].unixTime;
+                
+                candleData.push({
+                    time: time,
+                    open: open,
+                    high: high,
+                    low: low,
+                    close: close
+                });
+
+                // Fake volume based on price movement
+                const volume = Math.abs(close - open) * 1000000;
+                volumeData.push({
+                    time: time,
+                    value: volume,
+                    color: close >= open ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
+                });
+
+                if (i === 0) oldestPrice = open;
+                latestPrice = close;
+                if (high > highPrice) highPrice = high;
+                if (low < lowPrice) lowPrice = low;
+            }
+
+            candlestickSeries.setData(candleData);
+            volumeSeries.setData(volumeData);
+
+            document.getElementById('currentPrice').textContent = '
+            const candleData = [];
+            const volumeData = [];
+            let latestPrice = 0;
+            let oldestPrice = 0;
+            let highPrice = 0;
+            let lowPrice = Infinity;
+
+            ohlcvData.forEach(function(item, index) {
+                const time = item.unixTime;
+                
+                candleData.push({
+                    time: time,
+                    open: item.o,
+                    high: item.h,
+                    low: item.l,
+                    close: item.c
+                });
+
+                volumeData.push({
+                    time: time,
+                    value: item.v,
+                    color: item.c >= item.o ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
+                });
+
+                if (index === 0) oldestPrice = item.o;
+                if (index === ohlcvData.length - 1) latestPrice = item.c;
+                if (item.h > highPrice) highPrice = item.h;
+                if (item.l < lowPrice) lowPrice = item.l;
+            });
+
+            candlestickSeries.setData(candleData);
+            volumeSeries.setData(volumeData);
+
+            document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
+            
+            const priceChange = ((latestPrice - oldestPrice) / oldestPrice * 100);
+            const priceChangeEl = document.getElementById('priceChange');
+            priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
+            priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
+
+            document.getElementById('high24h').textContent = '$' + highPrice.toFixed(8);
+            document.getElementById('low24h').textContent = '$' + lowPrice.toFixed(8);
+
+            chart.timeScale().fitContent();
+        }
+
+        function changeTimeframe(button, timeframe) {
+            currentTimeframe = timeframe;
+            
+            document.querySelectorAll('.timeframe-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            fetchChartData();
+        }
+
+        document.getElementById('startTradingBtn').addEventListener('click', startTrading);
+        document.getElementById('learnMoreBtn').addEventListener('click', scrollToFeatures);
+        
+        document.querySelectorAll('.timeframe-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const timeframe = this.getAttribute('data-timeframe');
+                changeTimeframe(this, timeframe);
+            });
+        });
+
+        setInterval(function() {
+            if (document.getElementById('tradingView').classList.contains('active')) {
+                fetchChartData();
+            }
+        }, 30000);
+    </script>
+</body>
+</html> + latestPrice.toFixed(8);
+            
+            const priceChange = ((latestPrice - oldestPrice) / oldestPrice * 100);
+            const priceChangeEl = document.getElementById('priceChange');
+            priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
+            priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
+
+            document.getElementById('high24h').textContent = '
+            const candleData = [];
+            const volumeData = [];
+            let latestPrice = 0;
+            let oldestPrice = 0;
+            let highPrice = 0;
+            let lowPrice = Infinity;
+
+            ohlcvData.forEach(function(item, index) {
+                const time = item.unixTime;
+                
+                candleData.push({
+                    time: time,
+                    open: item.o,
+                    high: item.h,
+                    low: item.l,
+                    close: item.c
+                });
+
+                volumeData.push({
+                    time: time,
+                    value: item.v,
+                    color: item.c >= item.o ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
+                });
+
+                if (index === 0) oldestPrice = item.o;
+                if (index === ohlcvData.length - 1) latestPrice = item.c;
+                if (item.h > highPrice) highPrice = item.h;
+                if (item.l < lowPrice) lowPrice = item.l;
+            });
+
+            candlestickSeries.setData(candleData);
+            volumeSeries.setData(volumeData);
+
+            document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
+            
+            const priceChange = ((latestPrice - oldestPrice) / oldestPrice * 100);
+            const priceChangeEl = document.getElementById('priceChange');
+            priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
+            priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
+
+            document.getElementById('high24h').textContent = '$' + highPrice.toFixed(8);
+            document.getElementById('low24h').textContent = '$' + lowPrice.toFixed(8);
+
+            chart.timeScale().fitContent();
+        }
+
+        function changeTimeframe(button, timeframe) {
+            currentTimeframe = timeframe;
+            
+            document.querySelectorAll('.timeframe-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            fetchChartData();
+        }
+
+        document.getElementById('startTradingBtn').addEventListener('click', startTrading);
+        document.getElementById('learnMoreBtn').addEventListener('click', scrollToFeatures);
+        
+        document.querySelectorAll('.timeframe-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const timeframe = this.getAttribute('data-timeframe');
+                changeTimeframe(this, timeframe);
+            });
+        });
+
+        setInterval(function() {
+            if (document.getElementById('tradingView').classList.contains('active')) {
+                fetchChartData();
+            }
+        }, 30000);
+    </script>
+</body>
+</html> + highPrice.toFixed(8);
+            document.getElementById('low24h').textContent = '
+            const candleData = [];
+            const volumeData = [];
+            let latestPrice = 0;
+            let oldestPrice = 0;
+            let highPrice = 0;
+            let lowPrice = Infinity;
+
+            ohlcvData.forEach(function(item, index) {
+                const time = item.unixTime;
+                
+                candleData.push({
+                    time: time,
+                    open: item.o,
+                    high: item.h,
+                    low: item.l,
+                    close: item.c
+                });
+
+                volumeData.push({
+                    time: time,
+                    value: item.v,
+                    color: item.c >= item.o ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
+                });
+
+                if (index === 0) oldestPrice = item.o;
+                if (index === ohlcvData.length - 1) latestPrice = item.c;
+                if (item.h > highPrice) highPrice = item.h;
+                if (item.l < lowPrice) lowPrice = item.l;
+            });
+
+            candlestickSeries.setData(candleData);
+            volumeSeries.setData(volumeData);
+
+            document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
+            
+            const priceChange = ((latestPrice - oldestPrice) / oldestPrice * 100);
+            const priceChangeEl = document.getElementById('priceChange');
+            priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
+            priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
+
+            document.getElementById('high24h').textContent = '$' + highPrice.toFixed(8);
+            document.getElementById('low24h').textContent = '$' + lowPrice.toFixed(8);
+
+            chart.timeScale().fitContent();
+        }
+
+        function changeTimeframe(button, timeframe) {
+            currentTimeframe = timeframe;
+            
+            document.querySelectorAll('.timeframe-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            fetchChartData();
+        }
+
+        document.getElementById('startTradingBtn').addEventListener('click', startTrading);
+        document.getElementById('learnMoreBtn').addEventListener('click', scrollToFeatures);
+        
+        document.querySelectorAll('.timeframe-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const timeframe = this.getAttribute('data-timeframe');
+                changeTimeframe(this, timeframe);
+            });
+        });
+
+        setInterval(function() {
+            if (document.getElementById('tradingView').classList.contains('active')) {
+                fetchChartData();
+            }
+        }, 30000);
+    </script>
+</body>
+</html> + lowPrice.toFixed(8);
+
+            chart.timeScale().fitContent();
         }
 
         function updateChart(ohlcvData) {
