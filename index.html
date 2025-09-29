@@ -391,8 +391,7 @@
         }
 
         function showError(message) {
-            document.getElementById('errorContainer').innerHTML = 
-                `<div class="error-message">${message}</div>`;
+            document.getElementById('errorContainer').innerHTML = '<div class="error-message">' + message + '</div>';
         }
 
         function clearError() {
@@ -447,8 +446,7 @@
                 },
             });
 
-            // Handle window resize
-            window.addEventListener('resize', () => {
+            window.addEventListener('resize', function() {
                 chart.resize(container.clientWidth, container.clientHeight);
             });
         }
@@ -466,7 +464,9 @@
                     '1D': '1D'
                 };
 
-                const url = `https://public-api.birdeye.so/defi/ohlcv?address=${CONTRACT_ADDRESS}&type=${timeframeMap[currentTimeframe]}&time_from=${Math.floor(Date.now() / 1000) - 86400 * 7}&time_to=${Math.floor(Date.now() / 1000)}`;
+                const timeFrom = Math.floor(Date.now() / 1000) - 86400 * 7;
+                const timeTo = Math.floor(Date.now() / 1000);
+                const url = 'https://public-api.birdeye.so/defi/ohlcv?address=' + CONTRACT_ADDRESS + '&type=' + timeframeMap[currentTimeframe] + '&time_from=' + timeFrom + '&time_to=' + timeTo;
                 
                 console.log('Fetching OHLCV:', url);
                 
@@ -479,7 +479,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`API returned status ${response.status}`);
+                    throw new Error('API returned status ' + response.status);
                 }
 
                 const data = await response.json();
@@ -493,13 +493,13 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showError(`Failed to load data: ${error.message}`);
+                showError('Failed to load data: ' + error.message);
             }
         }
 
         async function fetchTokenInfo() {
             try {
-                const url = `https://public-api.birdeye.so/defi/token_overview?address=${CONTRACT_ADDRESS}`;
+                const url = 'https://public-api.birdeye.so/defi/token_overview?address=' + CONTRACT_ADDRESS;
                 
                 const response = await fetch(url, {
                     method: 'GET',
@@ -517,16 +517,10 @@
                         const token = data.data;
                         
                         if (token.v24hUSD) {
-                            document.getElementById('volume24h').textContent = 
-                                '
-</body>
-</html> + formatNumber(token.v24hUSD);
+                            document.getElementById('volume24h').textContent = '$' + formatNumber(token.v24hUSD);
                         }
                         if (token.mc) {
-                            document.getElementById('marketCap').textContent = 
-                                '
-</body>
-</html> + formatNumber(token.mc);
+                            document.getElementById('marketCap').textContent = '$' + formatNumber(token.mc);
                         }
                     }
                 }
@@ -554,7 +548,7 @@
             let highPrice = 0;
             let lowPrice = Infinity;
 
-            ohlcvData.forEach((item, index) => {
+            ohlcvData.forEach(function(item, index) {
                 const time = item.unixTime;
                 
                 candleData.push({
@@ -580,22 +574,15 @@
             candlestickSeries.setData(candleData);
             volumeSeries.setData(volumeData);
 
-            // Update price display
-            document.getElementById('currentPrice').textContent = '
-</body>
-</html> + latestPrice.toFixed(8);
+            document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
             
             const priceChange = ((latestPrice - oldestPrice) / oldestPrice * 100);
             const priceChangeEl = document.getElementById('priceChange');
             priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
             priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
 
-            document.getElementById('high24h').textContent = '
-</body>
-</html> + highPrice.toFixed(8);
-            document.getElementById('low24h').textContent = '
-</body>
-</html> + lowPrice.toFixed(8);
+            document.getElementById('high24h').textContent = '$' + highPrice.toFixed(8);
+            document.getElementById('low24h').textContent = '$' + lowPrice.toFixed(8);
 
             chart.timeScale().fitContent();
         }
@@ -603,7 +590,7 @@
         function changeTimeframe(button, timeframe) {
             currentTimeframe = timeframe;
             
-            document.querySelectorAll('.timeframe-btn').forEach(btn => {
+            document.querySelectorAll('.timeframe-btn').forEach(function(btn) {
                 btn.classList.remove('active');
             });
             button.classList.add('active');
@@ -611,22 +598,17 @@
             fetchChartData();
         }
 
-        // Add event listeners to timeframe buttons
-        document.addEventListener('DOMContentLoaded', () => {
-            // Landing page buttons
-            document.getElementById('startTradingBtn').addEventListener('click', startTrading);
-            document.getElementById('learnMoreBtn').addEventListener('click', scrollToFeatures);
-            
-            // Timeframe buttons
-            document.querySelectorAll('.timeframe-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const timeframe = this.getAttribute('data-timeframe');
-                    changeTimeframe(this, timeframe);
-                });
+        document.getElementById('startTradingBtn').addEventListener('click', startTrading);
+        document.getElementById('learnMoreBtn').addEventListener('click', scrollToFeatures);
+        
+        document.querySelectorAll('.timeframe-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const timeframe = this.getAttribute('data-timeframe');
+                changeTimeframe(this, timeframe);
             });
         });
 
-        setInterval(() => {
+        setInterval(function() {
             if (document.getElementById('tradingView').classList.contains('active')) {
                 fetchChartData();
             }
