@@ -314,8 +314,8 @@
         <h1 class="hero-title">The blockchain to house all<br>tit related finance</h1>
         <p class="hero-subtitle">trade & launch tokens on the same tit-performant chain</p>
         <div class="cta-buttons">
-            <button class="btn btn-primary" onclick="startTrading()">Start Trading</button>
-            <button class="btn btn-secondary" onclick="scrollToFeatures()">Learn More</button>
+            <button class="btn btn-primary" id="startTradingBtn">Start Trading</button>
+            <button class="btn btn-secondary" id="learnMoreBtn">Learn More</button>
         </div>
     </div>
 
@@ -613,6 +613,11 @@
 
         // Add event listeners to timeframe buttons
         document.addEventListener('DOMContentLoaded', () => {
+            // Landing page buttons
+            document.getElementById('startTradingBtn').addEventListener('click', startTrading);
+            document.getElementById('learnMoreBtn').addEventListener('click', scrollToFeatures);
+            
+            // Timeframe buttons
             document.querySelectorAll('.timeframe-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const timeframe = this.getAttribute('data-timeframe');
