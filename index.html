@@ -366,9 +366,15 @@
     </div>
 
     <script>
-        // Replace with your actual Solana token contract address
-        const CONTRACT_ADDRESS = 'YOUR_SOLANA_TOKEN_ADDRESS_HERE';
-        const BIRDEYE_API_KEY = 'YOUR_BIRDEYE_API_KEY'; // Get from birdeye.so
+        // STEP 1: Add your Birdeye API key here (you have this!)
+        const BIRDEYE_API_KEY = 'YOUR_API_KEY_HERE';
+        
+        // STEP 2: After deploying on pump.fun, add your token contract address here
+        // It will look something like: 'ABC123def456...' (a long string of letters and numbers)
+        const CONTRACT_ADDRESS = 'YOUR_PUMP_FUN_TOKEN_ADDRESS';
+        
+        // STEP 3: Set to false once you add your API key and token address above
+        const USE_DEMO_DATA = true;
         
         let chart = null;
         let currentTimeframe = '1H';
@@ -464,8 +470,15 @@
         }
 
         async function fetchChartData() {
+            // If using demo data or missing credentials, skip API call
+            if (USE_DEMO_DATA || CONTRACT_ADDRESS === 'YOUR_SOLANA_TOKEN_ADDRESS_HERE' || BIRDEYE_API_KEY === 'YOUR_BIRDEYE_API_KEY') {
+                console.log('Using demo data. Add your API key and token address to use live data.');
+                generateDemoData();
+                return;
+            }
+
             try {
-                // Birdeye API endpoint
+                // Birdeye API endpoint for price history
                 const timeframeMap = {
                     '1m': '1m',
                     '5m': '5m',
@@ -477,29 +490,276 @@
 
                 const url = `https://public-api.birdeye.so/defi/history_price?address=${CONTRACT_ADDRESS}&address_type=token&type=${timeframeMap[currentTimeframe]}`;
                 
+                console.log('Fetching from Birdeye API:', url);
+                
                 const response = await fetch(url, {
+                    method: 'GET',
                     headers: {
-                        'X-API-KEY': BIRDEYE_API_KEY
+                        'X-API-KEY': BIRDEYE_API_KEY,
+                        'x-chain': 'solana',
+                        'Accept': 'application/json'
                     }
                 });
 
+                console.log('Response status:', response.status);
+
                 if (!response.ok) {
-                    // Generate demo data if API fails
+                    console.error('API request failed:', response.status, response.statusText);
                     generateDemoData();
                     return;
                 }
 
                 const data = await response.json();
+                console.log('API Response:', data);
                 
                 if (data.success && data.data && data.data.items) {
                     updateChart(data.data.items);
+                    
+                    // Also fetch current token info for stats
+                    fetchTokenInfo();
                 } else {
+                    console.warn('Invalid data structure:', data);
                     generateDemoData();
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
                 generateDemoData();
             }
+        }
+
+        async function fetchTokenInfo() {
+            try {
+                const url = `https://public-api.birdeye.so/defi/token_overview?address=${CONTRACT_ADDRESS}`;
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-API-KEY': BIRDEYE_API_KEY,
+                        'x-chain': 'solana',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Token Info:', data);
+                    
+                    if (data.success && data.data) {
+                        const token = data.data;
+                        
+                        // Update stats with real data
+                        if (token.v24hUSD) {
+                            document.getElementById('volume24h').textContent = '
+
+        function generateDemoData() {
+            // Generate realistic-looking demo data
+            const points = 100;
+            const basePrice = 0.00003054;
+            const labels = [];
+            const prices = [];
+            
+            let currentPrice = basePrice;
+            const now = Date.now();
+            
+            for (let i = points; i >= 0; i--) {
+                const time = new Date(now - i * 60000 * (currentTimeframe === '1m' ? 1 : currentTimeframe === '5m' ? 5 : 60));
+                labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                
+                // Add some realistic price movement
+                const change = (Math.random() - 0.48) * basePrice * 0.02;
+                currentPrice = Math.max(currentPrice + change, basePrice * 0.8);
+                prices.push(currentPrice);
+            }
+
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = prices;
+            chart.update('none');
+
+            // Update price display
+            const latestPrice = prices[prices.length - 1];
+            const oldPrice = prices[0];
+            const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
+            
+            document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
+            
+            const priceChangeEl = document.getElementById('priceChange');
+            priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
+            priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
+
+            // Update stats
+            document.getElementById('volume24h').textContent = '$' + (Math.random() * 500000 + 100000).toFixed(0);
+            document.getElementById('marketCap').textContent = '$' + (Math.random() * 5000000 + 1000000).toFixed(0);
+            document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
+            document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
+        }
+
+        function updateChart(priceData) {
+            const labels = [];
+            const prices = [];
+
+            priceData.forEach(item => {
+                const date = new Date(item.unixTime * 1000);
+                labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                prices.push(item.value);
+            });
+
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = prices;
+            chart.update('none');
+
+            // Update current price and change
+            if (prices.length > 0) {
+                const latestPrice = prices[prices.length - 1];
+                const oldPrice = prices[0];
+                const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
+                
+                document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
+                
+                const priceChangeEl = document.getElementById('priceChange');
+                priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
+                priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
+
+                // Update stats
+                document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
+                document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
+            }
+        }
+
+        function changeTimeframe(timeframe) {
+            currentTimeframe = timeframe;
+            
+            // Update active button
+            document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            fetchChartData();
+        }
+
+        // Auto-refresh data every 30 seconds
+        setInterval(() => {
+            if (document.getElementById('tradingView').classList.contains('active')) {
+                fetchChartData();
+            }
+        }, 30000);
+    </script>
+</body>
+</html> + formatNumber(token.v24hUSD);
+                        }
+                        if (token.mc) {
+                            document.getElementById('marketCap').textContent = '
+
+        function generateDemoData() {
+            // Generate realistic-looking demo data
+            const points = 100;
+            const basePrice = 0.00003054;
+            const labels = [];
+            const prices = [];
+            
+            let currentPrice = basePrice;
+            const now = Date.now();
+            
+            for (let i = points; i >= 0; i--) {
+                const time = new Date(now - i * 60000 * (currentTimeframe === '1m' ? 1 : currentTimeframe === '5m' ? 5 : 60));
+                labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                
+                // Add some realistic price movement
+                const change = (Math.random() - 0.48) * basePrice * 0.02;
+                currentPrice = Math.max(currentPrice + change, basePrice * 0.8);
+                prices.push(currentPrice);
+            }
+
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = prices;
+            chart.update('none');
+
+            // Update price display
+            const latestPrice = prices[prices.length - 1];
+            const oldPrice = prices[0];
+            const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
+            
+            document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
+            
+            const priceChangeEl = document.getElementById('priceChange');
+            priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
+            priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
+
+            // Update stats
+            document.getElementById('volume24h').textContent = '$' + (Math.random() * 500000 + 100000).toFixed(0);
+            document.getElementById('marketCap').textContent = '$' + (Math.random() * 5000000 + 1000000).toFixed(0);
+            document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
+            document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
+        }
+
+        function updateChart(priceData) {
+            const labels = [];
+            const prices = [];
+
+            priceData.forEach(item => {
+                const date = new Date(item.unixTime * 1000);
+                labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                prices.push(item.value);
+            });
+
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = prices;
+            chart.update('none');
+
+            // Update current price and change
+            if (prices.length > 0) {
+                const latestPrice = prices[prices.length - 1];
+                const oldPrice = prices[0];
+                const priceChange = ((latestPrice - oldPrice) / oldPrice * 100);
+                
+                document.getElementById('currentPrice').textContent = '$' + latestPrice.toFixed(8);
+                
+                const priceChangeEl = document.getElementById('priceChange');
+                priceChangeEl.textContent = (priceChange >= 0 ? '+' : '') + priceChange.toFixed(2) + '%';
+                priceChangeEl.className = 'price-change ' + (priceChange >= 0 ? 'positive' : 'negative');
+
+                // Update stats
+                document.getElementById('high24h').textContent = '$' + Math.max(...prices).toFixed(8);
+                document.getElementById('low24h').textContent = '$' + Math.min(...prices).toFixed(8);
+            }
+        }
+
+        function changeTimeframe(timeframe) {
+            currentTimeframe = timeframe;
+            
+            // Update active button
+            document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            fetchChartData();
+        }
+
+        // Auto-refresh data every 30 seconds
+        setInterval(() => {
+            if (document.getElementById('tradingView').classList.contains('active')) {
+                fetchChartData();
+            }
+        }, 30000);
+    </script>
+</body>
+</html> + formatNumber(token.mc);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching token info:', error);
+            }
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(2) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(2) + 'K';
+            }
+            return num.toFixed(2);
         }
 
         function generateDemoData() {
