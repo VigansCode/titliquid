@@ -11,14 +11,12 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
             color: #ffffff;
             overflow-x: hidden;
         }
-
         .landing-page {
             min-height: 100vh;
             display: flex;
@@ -28,7 +26,6 @@
             padding: 2rem;
             position: relative;
         }
-
         .landing-page::before {
             content: '';
             position: absolute;
@@ -39,12 +36,10 @@
             filter: blur(80px);
             animation: pulse 8s ease-in-out infinite;
         }
-
         @keyframes pulse {
             0%, 100% { transform: scale(1); opacity: 0.3; }
             50% { transform: scale(1.2); opacity: 0.5; }
         }
-
         .logo {
             font-size: 2rem;
             font-weight: 800;
@@ -55,7 +50,6 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-
         .hero-title {
             font-size: 4rem;
             font-weight: 800;
@@ -64,7 +58,6 @@
             z-index: 1;
             line-height: 1.2;
         }
-
         .hero-subtitle {
             font-size: 1.5rem;
             color: #a0a0a0;
@@ -72,14 +65,12 @@
             margin-bottom: 3rem;
             z-index: 1;
         }
-
         .cta-buttons {
             display: flex;
             gap: 1rem;
             z-index: 1;
             margin-bottom: 2rem;
         }
-
         .btn {
             padding: 1rem 2.5rem;
             font-size: 1.1rem;
@@ -91,40 +82,33 @@
             text-decoration: none;
             display: inline-block;
         }
-
         .btn-primary {
             background: linear-gradient(135deg, #ff69b4, #ff1493);
             color: white;
             box-shadow: 0 8px 32px rgba(255, 105, 180, 0.3);
         }
-
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 48px rgba(255, 105, 180, 0.5);
         }
-
         .btn-secondary {
             background: rgba(255, 255, 255, 0.1);
             color: white;
             backdrop-filter: blur(10px);
         }
-
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.15);
             transform: translateY(-2px);
         }
-
         .trading-view {
             display: none;
             width: 100%;
             min-height: 100vh;
             background: #0a0a0a;
         }
-
         .trading-view.active {
             display: block;
         }
-
         .navbar {
             background: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(10px);
@@ -134,7 +118,6 @@
             align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .nav-logo {
             font-size: 1.5rem;
             font-weight: 800;
@@ -142,7 +125,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
         .connect-btn {
             background: linear-gradient(135deg, #ff69b4, #ff1493);
             color: white;
@@ -153,18 +135,15 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
         .connect-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(255, 105, 180, 0.4);
         }
-
         .chart-container {
             padding: 2rem;
             max-width: 1400px;
             margin: 0 auto;
         }
-
         .chart-header {
             display: flex;
             justify-content: space-between;
@@ -173,25 +152,21 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
-
         .price-info {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
         }
-
         .token-name {
             font-size: 1.5rem;
             font-weight: 700;
             color: #ffffff;
         }
-
         .current-price {
             font-size: 2.5rem;
             font-weight: 800;
             color: #ff69b4;
         }
-
         .price-change {
             font-size: 1rem;
             font-weight: 600;
@@ -200,17 +175,14 @@
             display: inline-block;
             width: fit-content;
         }
-
         .price-change.positive {
             background: rgba(34, 197, 94, 0.2);
             color: #22c55e;
         }
-
         .price-change.negative {
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
         }
-
         .timeframe-selector {
             display: flex;
             gap: 0.5rem;
@@ -218,7 +190,6 @@
             padding: 0.3rem;
             border-radius: 8px;
         }
-
         .timeframe-btn {
             padding: 0.5rem 1rem;
             background: transparent;
@@ -229,16 +200,13 @@
             font-weight: 600;
             transition: all 0.2s ease;
         }
-
         .timeframe-btn:hover {
             color: #ffffff;
         }
-
         .timeframe-btn.active {
             background: linear-gradient(135deg, #ff69b4, #ff1493);
             color: white;
         }
-
         .chart-wrapper {
             background: rgba(20, 20, 20, 0.8);
             border-radius: 16px;
@@ -247,38 +215,32 @@
             height: 600px;
             overflow: hidden;
         }
-
         #chartContainer {
             width: 100%;
             height: 100%;
         }
-
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-top: 2rem;
         }
-
         .stat-card {
             background: rgba(20, 20, 20, 0.8);
             padding: 1.5rem;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .stat-label {
             color: #a0a0a0;
             font-size: 0.9rem;
             margin-bottom: 0.5rem;
         }
-
         .stat-value {
             color: #ffffff;
             font-size: 1.5rem;
             font-weight: 700;
         }
-
         .error-message {
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
@@ -287,24 +249,11 @@
             margin: 1rem 0;
             border: 1px solid rgba(239, 68, 68, 0.5);
         }
-
         @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2.5rem;
-            }
-
-            .hero-subtitle {
-                font-size: 1.2rem;
-            }
-
-            .cta-buttons {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .btn {
-                width: 100%;
-            }
+            .hero-title { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1.2rem; }
+            .cta-buttons { flex-direction: column; width: 100%; }
+            .btn { width: 100%; }
         }
     </style>
 </head>
@@ -337,9 +286,9 @@
                     <button class="timeframe-btn" data-timeframe="1m">1m</button>
                     <button class="timeframe-btn" data-timeframe="5m">5m</button>
                     <button class="timeframe-btn" data-timeframe="15m">15m</button>
-                    <button class="timeframe-btn active" data-timeframe="1H">1H</button>
-                    <button class="timeframe-btn" data-timeframe="4H">4H</button>
-                    <button class="timeframe-btn" data-timeframe="1D">1D</button>
+                    <button class="timeframe-btn active" data-timeframe="1h">1H</button>
+                    <button class="timeframe-btn" data-timeframe="4h">4H</button>
+                    <button class="timeframe-btn" data-timeframe="1d">1D</button>
                 </div>
             </div>
 
@@ -371,12 +320,11 @@
     </div>
 
     <script>
-        const CONTRACT_ADDRESS = 'GDjkxDzEYLgNxaeAWh5VdF1wwKE5ZcdcvapVgn2xpump';
-        
-        let chart = null;
-        let candlestickSeries = null;
-        let volumeSeries = null;
-        let currentTimeframe = '1h';
+        var CONTRACT_ADDRESS = 'GDjkxDzEYLgNxaeAWh5VdF1wwKE5ZcdcvapVgn2xpump';
+        var chart = null;
+        var candlestickSeries = null;
+        var volumeSeries = null;
+        var currentTimeframe = '1h';
 
         function startTrading() {
             document.getElementById('landingPage').style.display = 'none';
@@ -398,51 +346,28 @@
         }
 
         function initChart() {
-            const container = document.getElementById('chartContainer');
-            
+            var container = document.getElementById('chartContainer');
             chart = LightweightCharts.createChart(container, {
-                layout: {
-                    background: { color: '#141414' },
-                    textColor: '#a0a0a0',
-                },
-                grid: {
-                    vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
-                    horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
-                },
-                crosshair: {
-                    mode: LightweightCharts.CrosshairMode.Normal,
-                },
-                rightPriceScale: {
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                },
-                timeScale: {
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                    timeVisible: true,
-                    secondsVisible: false,
-                },
+                layout: { background: { color: '#141414' }, textColor: '#a0a0a0' },
+                grid: { vertLines: { color: 'rgba(255, 255, 255, 0.05)' }, horzLines: { color: 'rgba(255, 255, 255, 0.05)' } },
+                crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+                rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.1)' },
+                timeScale: { borderColor: 'rgba(255, 255, 255, 0.1)', timeVisible: true, secondsVisible: false },
                 width: container.clientWidth,
-                height: container.clientHeight,
+                height: container.clientHeight
             });
 
             candlestickSeries = chart.addCandlestickSeries({
-                upColor: '#22c55e',
-                downColor: '#ef4444',
-                borderUpColor: '#22c55e',
-                borderDownColor: '#ef4444',
-                wickUpColor: '#22c55e',
-                wickDownColor: '#ef4444',
+                upColor: '#22c55e', downColor: '#ef4444',
+                borderUpColor: '#22c55e', borderDownColor: '#ef4444',
+                wickUpColor: '#22c55e', wickDownColor: '#ef4444'
             });
 
             volumeSeries = chart.addHistogramSeries({
                 color: '#26a69a',
-                priceFormat: {
-                    type: 'volume',
-                },
+                priceFormat: { type: 'volume' },
                 priceScaleId: '',
-                scaleMargins: {
-                    top: 0.8,
-                    bottom: 0,
-                },
+                scaleMargins: { top: 0.8, bottom: 0 }
             });
 
             window.addEventListener('resize', function() {
@@ -450,36 +375,16 @@
             });
         }
 
-        async function fetchChartData() {
+        function fetchChartData() {
             clearError();
-
-            try {
-                const timeframeMap = {
-                    '1m': '1',
-                    '5m': '5',
-                    '15m': '15',
-                    '1h': '60',
-                    '4h': '240',
-                    '1d': '1440'
-                };
-
-                const resolution = timeframeMap[currentTimeframe];
-                const toTime = Math.floor(Date.now() / 1000);
-                const fromTime = toTime - (7 * 24 * 60 * 60);
-                
-                const url = 'https://api.dexscreener.com/latest/dex/pairs/solana/' + CONTRACT_ADDRESS;
-                
-                console.log('Fetching from DexScreener:', url);
-                
-                const response = await fetch(url);
-
-                if (!response.ok) {
-                    throw new Error('DexScreener API returned status ' + response.status);
-                }
-
-                const data = await response.json();
+            var url = 'https://api.dexscreener.com/latest/dex/pairs/solana/' + CONTRACT_ADDRESS;
+            console.log('Fetching from DexScreener:', url);
+            
+            fetch(url).then(function(response) {
+                if (!response.ok) throw new Error('DexScreener API returned status ' + response.status);
+                return response.json();
+            }).then(function(data) {
                 console.log('DexScreener Response:', data);
-                
                 if (data.pair) {
                     updateChartFromDexScreener(data.pair);
                     updateStatsFromDexScreener(data.pair);
@@ -487,52 +392,39 @@
                     updateChartFromDexScreener(data.pairs[0]);
                     updateStatsFromDexScreener(data.pairs[0]);
                 } else {
-                    showError('Token not found on DexScreener. It may be too new or not yet indexed.');
+                    showError('Token not found on DexScreener');
                 }
-            } catch (error) {
+            }).catch(function(error) {
                 console.error('Error:', error);
                 showError('Failed to load data: ' + error.message);
-            }
+            });
         }
 
         function updateChartFromDexScreener(pairData) {
-            const priceUsd = parseFloat(pairData.priceUsd);
-            const priceChange24h = parseFloat(pairData.priceChange.h24 || 0);
+            var priceUsd = parseFloat(pairData.priceUsd);
+            var priceChange24h = parseFloat(pairData.priceChange.h24 || 0);
             
-            document.getElementById('currentPrice').textContent = '
-</body>
-</html> + priceUsd.toFixed(8);
+            document.getElementById('currentPrice').textContent = '$' + priceUsd.toFixed(8);
             
-            const priceChangeEl = document.getElementById('priceChange');
+            var priceChangeEl = document.getElementById('priceChange');
             priceChangeEl.textContent = (priceChange24h >= 0 ? '+' : '') + priceChange24h.toFixed(2) + '%';
             priceChangeEl.className = 'price-change ' + (priceChange24h >= 0 ? 'positive' : 'negative');
 
-            const now = Math.floor(Date.now() / 1000);
-            const candleData = [];
-            const volumeData = [];
+            var now = Math.floor(Date.now() / 1000);
+            var candleData = [];
+            var volumeData = [];
             
-            for (let i = 100; i >= 0; i--) {
-                const time = now - (i * 3600);
-                const randomChange = (Math.random() - 0.5) * 0.02;
-                const basePrice = priceUsd * (1 + randomChange);
-                const open = basePrice * (1 + (Math.random() - 0.5) * 0.01);
-                const close = basePrice * (1 + (Math.random() - 0.5) * 0.01);
-                const high = Math.max(open, close) * (1 + Math.random() * 0.01);
-                const low = Math.min(open, close) * (1 - Math.random() * 0.01);
+            for (var i = 100; i >= 0; i--) {
+                var time = now - (i * 3600);
+                var randomChange = (Math.random() - 0.5) * 0.02;
+                var basePrice = priceUsd * (1 + randomChange);
+                var open = basePrice * (1 + (Math.random() - 0.5) * 0.01);
+                var close = basePrice * (1 + (Math.random() - 0.5) * 0.01);
+                var high = Math.max(open, close) * (1 + Math.random() * 0.01);
+                var low = Math.min(open, close) * (1 - Math.random() * 0.01);
                 
-                candleData.push({
-                    time: time,
-                    open: open,
-                    high: high,
-                    low: low,
-                    close: close
-                });
-
-                volumeData.push({
-                    time: time,
-                    value: Math.random() * 100000,
-                    color: close >= open ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
-                });
+                candleData.push({ time: time, open: open, high: high, low: low, close: close });
+                volumeData.push({ time: time, value: Math.random() * 100000, color: close >= open ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)' });
             }
 
             candlestickSeries.setData(candleData);
@@ -542,64 +434,47 @@
 
         function updateStatsFromDexScreener(pairData) {
             if (pairData.volume && pairData.volume.h24) {
-                document.getElementById('volume24h').textContent = '
-</body>
-</html> + formatNumber(pairData.volume.h24);
+                document.getElementById('volume24h').textContent = '$' + formatNumber(pairData.volume.h24);
             }
-            
             if (pairData.fdv) {
-                document.getElementById('marketCap').textContent = '
-</body>
-</html> + formatNumber(pairData.fdv);
+                document.getElementById('marketCap').textContent = '$' + formatNumber(pairData.fdv);
             } else if (pairData.marketCap) {
-                document.getElementById('marketCap').textContent = '
-</body>
-</html> + formatNumber(pairData.marketCap);
+                document.getElementById('marketCap').textContent = '$' + formatNumber(pairData.marketCap);
             }
-
-            const priceUsd = parseFloat(pairData.priceUsd);
-            const high24h = pairData.priceChange && pairData.priceChange.h24 ? priceUsd * (1 + Math.abs(parseFloat(pairData.priceChange.h24)) / 100) : priceUsd * 1.05;
-            const low24h = pairData.priceChange && pairData.priceChange.h24 ? priceUsd * (1 - Math.abs(parseFloat(pairData.priceChange.h24)) / 100) : priceUsd * 0.95;
-
-            document.getElementById('high24h').textContent = '
-</body>
-</html> + high24h.toFixed(8);
-            document.getElementById('low24h').textContent = '
-</body>
-</html> + low24h.toFixed(8);
+            var priceUsd = parseFloat(pairData.priceUsd);
+            var high24h = priceUsd * 1.05;
+            var low24h = priceUsd * 0.95;
+            document.getElementById('high24h').textContent = '$' + high24h.toFixed(8);
+            document.getElementById('low24h').textContent = '$' + low24h.toFixed(8);
         }
 
         function formatNumber(num) {
-            if (num >= 1000000000) {
-                return (num / 1000000000).toFixed(2) + 'B';
-            } else if (num >= 1000000) {
-                return (num / 1000000).toFixed(2) + 'M';
-            } else if (num >= 1000) {
-                return (num / 1000).toFixed(2) + 'K';
-            }
+            if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
             return num.toFixed(2);
         }
 
         function changeTimeframe(button, timeframe) {
             currentTimeframe = timeframe;
-            
-            document.querySelectorAll('.timeframe-btn').forEach(function(btn) {
-                btn.classList.remove('active');
-            });
+            var buttons = document.querySelectorAll('.timeframe-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
             button.classList.add('active');
-            
             fetchChartData();
         }
 
         document.getElementById('startTradingBtn').addEventListener('click', startTrading);
         document.getElementById('learnMoreBtn').addEventListener('click', scrollToFeatures);
         
-        document.querySelectorAll('.timeframe-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const timeframe = this.getAttribute('data-timeframe');
+        var timeframeBtns = document.querySelectorAll('.timeframe-btn');
+        for (var i = 0; i < timeframeBtns.length; i++) {
+            timeframeBtns[i].addEventListener('click', function() {
+                var timeframe = this.getAttribute('data-timeframe');
                 changeTimeframe(this, timeframe);
             });
-        });
+        }
 
         setInterval(function() {
             if (document.getElementById('tradingView').classList.contains('active')) {
